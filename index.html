@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NIST SP 800-22 Test Suite</title>
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/styles.css">
+
+  <!-- Chart.js (CDN) — must load before ui/charts.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+</head>
+<body>
+
+<h1>NIST SP 800-22 &mdash; Full Test Suite</h1>
+<p class="subtitle-main">Tests 1&ndash;14 &middot; Significance level &alpha; = 0.01</p>
+
+<div class="input-section">
+  <label>Binary sequence (0s and 1s only &mdash; spaces/newlines ignored)</label>
+  <textarea id="binInput" placeholder="Enter binary sequence or click Generate…"></textarea>
+  <div class="controls">
+    <label>Block M:    <input type="number" id="blockSize" value="128" min="8"  max="10000"></label>
+    <label>Template m: <input type="number" id="tmplSize"  value="9"   min="2"  max="10"></label>
+    <label>LC block:   <input type="number" id="lcBlock"   value="500" min="50" max="5000"></label>
+    <button onclick="runAll()">&#9654; Run All Tests</button>
+    <button class="btn-gen" onclick="generateRandom(1000)">&#127922; 1 000 bits</button>
+    <button class="btn-gen" onclick="generateRandom(10000)">&#127922; 10 000 bits</button>
+  </div>
+  <div id="inputError" class="error"></div>
+  <div id="inputInfo"  class="info"></div>
+</div>
+
+<div id="summary" style="display:none" class="summary"></div>
+<div id="results" class="results"></div>
+
+<!--
+  Script load order enforces the dependency graph:
+    math.js          ← no dependencies
+    tests/test-*.js  ← depend on math.js
+    ui/charts.js     ← depends on Chart.js (CDN)
+    ui/card.js       ← no JS dependencies
+    ui/renderers.js  ← depends on charts.js + card.js
+    runner.js        ← depends on all test-*.js + renderers.js
+    ui/controller.js ← depends on runner.js
+-->
+
+<!-- Layer 1: Pure math -->
+<script src="js/math.js"></script>
+
+<!-- Layer 2: Statistical tests (each is self-contained) -->
+<script src="js/tests/test-01-frequency.js"></script>
+<script src="js/tests/test-02-block-frequency.js"></script>
+<script src="js/tests/test-03-runs.js"></script>
+<script src="js/tests/test-04-longest-run.js"></script>
+<script src="js/tests/test-05-matrix-rank.js"></script>
+<script src="js/tests/test-06-non-overlapping.js"></script>
+<script src="js/tests/test-07-overlapping.js"></script>
+<script src="js/tests/test-08-maurer.js"></script>
+<script src="js/tests/test-09-linear-complexity.js"></script>
+<script src="js/tests/test-10-serial.js"></script>
+<script src="js/tests/test-11-approx-entropy.js"></script>
+<script src="js/tests/test-12-cusum.js"></script>
+<script src="js/tests/test-13-random-excursions.js"></script>
+<script src="js/tests/test-14-random-excursions-variant.js"></script>
+
+<!-- Layer 3: UI primitives -->
+<script src="js/ui/charts.js"></script>
+<script src="js/ui/card.js"></script>
+<script src="js/ui/renderers.js"></script>
+
+<!-- Layer 4: Orchestration -->
+<script src="js/runner.js"></script>
+<script src="js/ui/controller.js"></script>
+
+</body>
+</html>

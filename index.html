@@ -4,11 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>NIST SP 800-22 Test Suite</title>
-
-  <!-- Styles -->
   <link rel="stylesheet" href="css/styles.css">
-
-  <!-- Chart.js (CDN) — must load before ui/charts.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 </head>
 <body>
@@ -16,39 +12,294 @@
 <h1>NIST SP 800-22 &mdash; Full Test Suite</h1>
 <p class="subtitle-main">Tests 1&ndash;14 &middot; Significance level &alpha; = 0.01</p>
 
-<div class="input-section">
-  <label>Binary sequence (0s and 1s only &mdash; spaces/newlines ignored)</label>
-  <textarea id="binInput" placeholder="Enter binary sequence or click Generate…"></textarea>
-  <div class="controls">
-    <label>Block M:    <input type="number" id="blockSize" value="128" min="8"  max="10000"></label>
-    <label>Template m: <input type="number" id="tmplSize"  value="9"   min="2"  max="10"></label>
-    <label>LC block:   <input type="number" id="lcBlock"   value="500" min="50" max="5000"></label>
-    <button onclick="runAll()">&#9654; Run All Tests</button>
-    <button class="btn-gen" onclick="generateRandom(1000)">&#127922; 1 000 bits</button>
-    <button class="btn-gen" onclick="generateRandom(10000)">&#127922; 10 000 bits</button>
+<!-- Navigation -->
+<nav class="nav">
+  <button class="nav-btn active" onclick="showPage('tests',this)">&#9654; Tests</button>
+  <button class="nav-btn"        onclick="showPage('help',this)">&#63; Help</button>
+  <button class="nav-btn"        onclick="showPage('about',this)">&#9432; About</button>
+</nav>
+
+
+<!-- ═══════════════════════════════ PAGE: TESTS ═══════════════════════════════ -->
+<div id="page-tests" class="page active">
+
+  <div class="input-section">
+    <label>Binary sequence (0s and 1s only &mdash; spaces/newlines ignored)</label>
+    <textarea id="binInput" placeholder="Enter binary sequence or click Generate…"></textarea>
+    <div class="controls">
+      <label>Block M:    <input type="number" id="blockSize" value="128" min="8"  max="10000"></label>
+      <label>Template m: <input type="number" id="tmplSize"  value="9"   min="2"  max="10"></label>
+      <label>LC block:   <input type="number" id="lcBlock"   value="500" min="50" max="5000"></label>
+      <button onclick="runAll()">&#9654; Run All Tests</button>
+      <button class="btn-gen" onclick="generateRandom(1000)">&#127922; 1 000 bits</button>
+      <button class="btn-gen" onclick="generateRandom(10000)">&#127922; 10 000 bits</button>
+    </div>
+    <div id="inputError" class="error"></div>
+    <div id="inputInfo"  class="info"></div>
   </div>
-  <div id="inputError" class="error"></div>
-  <div id="inputInfo"  class="info"></div>
+
+  <div id="summary" style="display:none" class="summary"></div>
+  <div id="results" class="results"></div>
+
 </div>
 
-<div id="summary" style="display:none" class="summary"></div>
-<div id="results" class="results"></div>
 
-<!--
-  Script load order enforces the dependency graph:
-    math.js          ← no dependencies
-    tests/test-*.js  ← depend on math.js
-    ui/charts.js     ← depends on Chart.js (CDN)
-    ui/card.js       ← no JS dependencies
-    ui/renderers.js  ← depends on charts.js + card.js
-    runner.js        ← depends on all test-*.js + renderers.js
-    ui/controller.js ← depends on runner.js
--->
+<!-- ════════════════════════════════ PAGE: HELP ══════════════════════════════ -->
+<div id="page-help" class="page">
+<div class="doc-page">
 
-<!-- Layer 1: Pure math -->
+  <div class="doc-section">
+    <h2>&#9654; Quick Start</h2>
+    <p>This tool runs all 14 statistical tests from <strong>NIST SP 800-22 Rev&nbsp;1a</strong> on a binary sequence of your choice. Each test produces a <em>p-value</em>. A p-value below the significance threshold <code>&alpha;&nbsp;=&nbsp;0.01</code> is interpreted as evidence that the sequence is <strong>non-random</strong>.</p>
+    <div class="highlight-box">
+      <p><strong>Three steps:</strong>&nbsp; ①&nbsp;Enter or generate a binary sequence &nbsp;&rarr;&nbsp; ②&nbsp;Adjust parameters if needed &nbsp;&rarr;&nbsp; ③&nbsp;Click <em>Run All Tests</em></p>
+    </div>
+
+    <h3>Step 1 — Provide a binary sequence</h3>
+    <p>Paste any string of <code>0</code>s and <code>1</code>s into the text area. Spaces, tabs, and newlines are ignored. The minimum accepted length is <strong>100 bits</strong>; for reliable statistical conclusions NIST recommends at least <strong>1&nbsp;000 bits</strong>. Tests 13 and 14 (Random Excursions) need approximately <strong>10&nbsp;000+ bits</strong> to accumulate enough excursion cycles.</p>
+    <p>If you have no sequence at hand, use the <em>Generate</em> buttons to produce a pseudo-random sequence of 1&nbsp;000 or 10&nbsp;000 bits using the browser's built-in <code>Math.random()</code>.</p>
+
+    <h3>Step 2 — Set parameters (optional)</h3>
+    <p>Three numerical inputs appear to the left of the <em>Run</em> button. They control specific tests only; all other tests ignore them completely. Default values follow NIST recommendations and work well for most inputs.</p>
+
+    <h3>Step 3 — Interpret the results</h3>
+    <p>Each test card shows a <strong>PASS</strong>&nbsp;(green), <strong>FAIL</strong>&nbsp;(red), or <strong>N/A</strong>&nbsp;(yellow) badge. The <em>Summary</em> bar counts all three categories. Cards include the exact p-value, key statistics, and a chart where applicable.</p>
+    <ul>
+      <li><strong>p-value &ge; 0.01</strong> &rarr; PASS — no statistical evidence of non-randomness for this test.</li>
+      <li><strong>p-value &lt; 0.01</strong> &rarr; FAIL — the sequence exhibits a pattern this test detects.</li>
+      <li><strong>N/A</strong> &rarr; the sequence is too short; the card shows the minimum required length.</li>
+    </ul>
+  </div>
+
+  <div class="doc-section">
+    <h2>&#9881; Configurable Parameters</h2>
+    <table class="param-table">
+      <thead>
+        <tr><th>Parameter</th><th>Default</th><th>Range</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Block M</td>
+          <td>128</td>
+          <td>8&nbsp;–&nbsp;10&nbsp;000</td>
+          <td>
+            <strong>Block size for Test&nbsp;2 (Block Frequency).</strong> The sequence is split into non-overlapping blocks of M bits. The fraction of 1s per block should be close to 0.5 for a random sequence. Larger M gives more statistical power but demands a longer input. NIST recommends M&nbsp;&ge;&nbsp;20 and at least 100 blocks (so the sequence should contain at least 100&nbsp;&times;&nbsp;M bits).
+          </td>
+        </tr>
+        <tr>
+          <td>Template m</td>
+          <td>9</td>
+          <td>2&nbsp;–&nbsp;10</td>
+          <td>
+            <strong>Template length for Tests&nbsp;6 and 7.</strong> Test&nbsp;6 (Non-Overlapping) searches for the aperiodic pattern <code>0&hellip;01</code> (m&minus;1 zeros followed by one 1), advancing the window by m positions after each match so patterns never overlap. Test&nbsp;7 (Overlapping) counts every occurrence of the all-ones pattern <code>1&hellip;1</code> with a sliding window of step 1. Larger m requires a proportionally longer sequence.
+          </td>
+        </tr>
+        <tr>
+          <td>LC block</td>
+          <td>500</td>
+          <td>50&nbsp;–&nbsp;5&nbsp;000</td>
+          <td>
+            <strong>Block size M for Test&nbsp;9 (Linear Complexity).</strong> Each block of M bits is analysed by the Berlekamp–Massey algorithm to find the shortest LFSR that can generate it. The deviation of the LFSR length from its expected value for random data is classified into seven categories and tested with a chi-square statistic. NIST recommends 500&nbsp;&le;&nbsp;M&nbsp;&le;&nbsp;5&nbsp;000. Smaller blocks give more samples but each is less informative; larger blocks are more sensitive to linear structure.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="doc-section">
+    <h2>&#128202; All 14 Tests at a Glance</h2>
+    <table class="test-table">
+      <thead>
+        <tr><th>#</th><th>Name</th><th>What it detects</th><th>Min bits</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1</td><td>Frequency (Monobit)</td>
+          <td>Imbalance between the total count of 0s and 1s in the entire sequence.</td>
+          <td>100</td>
+        </tr>
+        <tr>
+          <td>2</td><td>Block Frequency</td>
+          <td>Imbalance of 1s inside fixed M-bit blocks (controlled by <strong>Block M</strong>).</td>
+          <td>M</td>
+        </tr>
+        <tr>
+          <td>3</td><td>Runs</td>
+          <td>Irregular oscillation between 0-runs and 1-runs — too many or too few transitions. Includes a mandatory pre-test on the proportion of 1s.</td>
+          <td>100</td>
+        </tr>
+        <tr>
+          <td>4</td><td>Longest Run of Ones</td>
+          <td>Unusually long consecutive 1s inside M-bit blocks. Block size M is selected automatically based on n (M=8 for n&lt;6272, M=128 for n&lt;750&nbsp;000, M=10&nbsp;000 otherwise).</td>
+          <td>128</td>
+        </tr>
+        <tr>
+          <td>5</td><td>Binary Matrix Rank</td>
+          <td>Linear dependence among sub-sequences via GF(2) Gaussian elimination on 32&times;32 binary matrices.</td>
+          <td>1&nbsp;024</td>
+        </tr>
+        <tr>
+          <td>6</td><td>Non-Overlapping Template</td>
+          <td>Excess occurrences of an aperiodic m-bit pattern (controlled by <strong>Template m</strong>). After each match the window jumps m positions forward.</td>
+          <td>8&times;m</td>
+        </tr>
+        <tr>
+          <td>7</td><td>Overlapping Template</td>
+          <td>Excess overlapping occurrences of the all-ones m-bit template. The window slides one position at a time.</td>
+          <td>1&nbsp;032</td>
+        </tr>
+        <tr>
+          <td>8</td><td>Maurer's Universal</td>
+          <td>Compressibility of the sequence — a predictable sequence can be compressed, a random one cannot. Needs a very large input to select a meaningful L parameter.</td>
+          <td>~3&nbsp;850</td>
+        </tr>
+        <tr>
+          <td>9</td><td>Linear Complexity</td>
+          <td>LFSR length per block relative to the expected value for random data, classified into 7 T-categories (controlled by <strong>LC block</strong>).</td>
+          <td>LC block</td>
+        </tr>
+        <tr>
+          <td>10</td><td>Serial</td>
+          <td>Unequal frequency of all overlapping m-bit patterns (m=3, circular extension). Reports two p-values from first and second differences of &psi;&sup2;.</td>
+          <td>100</td>
+        </tr>
+        <tr>
+          <td>11</td><td>Approximate Entropy</td>
+          <td>Difference between the frequency of m-bit and (m+1)-bit overlapping patterns. Low ApEn means the sequence is more predictable than expected.</td>
+          <td>100</td>
+        </tr>
+        <tr>
+          <td>12</td><td>Cumulative Sums</td>
+          <td>Excessive deviation of the running partial sum (random walk) from zero. Both forward and backward passes are evaluated independently.</td>
+          <td>100</td>
+        </tr>
+        <tr>
+          <td>13</td><td>Random Excursions</td>
+          <td>Unusual number of visits to states &plusmn;1&hellip;&plusmn;4 within each excursion cycle of the partial-sum walk. Requires at least 500 complete cycles (J&nbsp;&ge;&nbsp;500).</td>
+          <td>~10&nbsp;000</td>
+        </tr>
+        <tr>
+          <td>14</td><td>Random Excursions Variant</td>
+          <td>Total visit count to states &plusmn;1&hellip;&plusmn;9 across the entire walk, compared against the expected J crossings. Also requires J&nbsp;&ge;&nbsp;500.</td>
+          <td>~10&nbsp;000</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="doc-section">
+    <h2>&#128270; Interpreting Results in Depth</h2>
+    <h3>What is a p-value?</h3>
+    <p>Each test converts the observed sequence statistics into a single number — the p-value. It represents the probability that a <em>perfectly random</em> sequence would produce a test statistic at least as extreme as the one observed. A very small p-value means the observed pattern is highly unlikely to arise by chance.</p>
+
+    <h3>Tests 13 &amp; 14 — per-state p-values</h3>
+    <p>Tests 13 and 14 compute a separate p-value for each state (&plusmn;1…&plusmn;4 for Test 13; &plusmn;1…&plusmn;9 for Test 14). All individual p-values are listed inside the card. The card's overall PASS/FAIL badge uses the minimum p-value across all states (the most conservative choice).</p>
+
+    <h3>When is a failure conclusive?</h3>
+    <div class="highlight-box">
+      <p>For any truly random sequence, approximately 1% of tests will fail by chance at &alpha;=0.01. A single isolated failure is not conclusive. Repeated failures across multiple tests — especially Tests 1–3 — or a p-value extremely close to 0 are more significant indicators of non-randomness.</p>
+    </div>
+
+    <h3>p-value very close to 1.0</h3>
+    <p>An unusually high p-value (e.g. &gt; 0.9999) can also indicate a problem: the sequence may be <em>too perfectly balanced</em> — for example, a forced alternating <code>1010&hellip;</code> pattern. Genuine random sequences produce p-values that are themselves uniformly distributed over [0, 1].</p>
+  </div>
+
+</div>
+</div><!-- /page-help -->
+
+
+<!-- ═══════════════════════════════ PAGE: ABOUT ═══════════════════════════════ -->
+<div id="page-about" class="page">
+<div class="doc-page">
+
+  <div class="doc-section">
+    <div class="about-hero">
+      <span class="hero-icon">&#128202;</span>
+      <h2>NIST SP 800-22 Test Suite</h2>
+      <p>A complete, client-side implementation of the NIST statistical randomness test suite — running entirely in your browser with no server, no data upload, and no external dependencies beyond Chart.js.</p>
+    </div>
+    <div class="tag-row">
+      <span class="tag">NIST SP 800-22 Rev 1a</span>
+      <span class="tag">14 statistical tests</span>
+      <span class="tag">Client-side only</span>
+      <span class="tag">No data leaves your browser</span>
+      <span class="tag">SOLID architecture</span>
+      <span class="tag">123 unit tests</span>
+    </div>
+  </div>
+
+  <div class="doc-section">
+    <h2>&#127919; Purpose</h2>
+    <p>Randomness is a foundational requirement in cryptography, secure communications, simulation, and scientific research. A sequence that <em>appears</em> random to casual inspection may contain subtle statistical patterns — patterns that can be exploited by an adversary or that reveal flaws in a random number generator (RNG).</p>
+    <p>The <strong>NIST SP 800-22</strong> document defines a battery of statistical tests that probe different structural properties of binary sequences: frequency balance, run structure, linear complexity, pattern repetition, and random-walk behaviour. Together they form the de-facto standard acceptance test for RNGs used in cryptographic applications.</p>
+    <p>This tool was built to make that standard accessible to:</p>
+    <ul>
+      <li><strong>Security researchers and engineers</strong> who need to validate the output quality of hardware TRNGs, software PRNGs, or entropy sources before deployment.</li>
+      <li><strong>Students and educators</strong> in cryptography, information theory, or statistics — the per-test charts and numerical breakdowns make abstract concepts tangible.</li>
+      <li><strong>Developers</strong> implementing or auditing random number generators and needing a quick conformance check during development.</li>
+      <li><strong>Anyone curious</strong> about whether a specific bit sequence — from a coin flip, a noise source, or an algorithm — looks statistically random.</li>
+    </ul>
+  </div>
+
+  <div class="doc-section">
+    <h2>&#10024; Key Features</h2>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <span class="fc-icon">&#128274;</span>
+        <h4>Privacy by design</h4>
+        <p>All computation runs in your browser via plain JavaScript. Your binary sequence never leaves your device — no server, no telemetry, no logging of any kind.</p>
+      </div>
+      <div class="feature-card">
+        <span class="fc-icon">&#128202;</span>
+        <h4>All 14 NIST tests</h4>
+        <p>Complete coverage of NIST SP 800-22 Rev 1a Tests 1–14, each with its own result card, p-value, statistics, and chart where applicable.</p>
+      </div>
+      <div class="feature-card">
+        <span class="fc-icon">&#9881;</span>
+        <h4>Configurable parameters</h4>
+        <p>Block size (M), template length (m), and linear-complexity block size are all adjustable to match the requirements of your analysis.</p>
+      </div>
+      <div class="feature-card">
+        <span class="fc-icon">&#128218;</span>
+        <h4>Specification-accurate</h4>
+        <p>Each algorithm follows the exact procedure from NIST SP 800-22 Rev 1a, with p-values verified against the official Appendix B reference vectors.</p>
+      </div>
+      <div class="feature-card">
+        <span class="fc-icon">&#129520;</span>
+        <h4>Clean, modular code</h4>
+        <p>22 files across four dependency layers, one file per test, following SOLID principles — easy to audit, extend, or embed in another project.</p>
+      </div>
+      <div class="feature-card">
+        <span class="fc-icon">&#9989;</span>
+        <h4>Unit tested</h4>
+        <p>123 automated unit tests cover all 14 statistical tests, the Berlekamp–Massey algorithm, and all math utilities. Run with <code>node tests/nist.test.js</code>.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="doc-section">
+    <h2>&#128296; Technical Notes</h2>
+    <h3>Mathematical core</h3>
+    <p>All p-values are computed from either <code>erfc(x)</code> (complementary error function, Abramowitz &amp; Stegun 7.1.26, accuracy &lt;&nbsp;1.5&times;10<sup>&minus;7</sup>) or the regularised upper incomplete gamma function <code>Q(a,x)</code> (series expansion for x&nbsp;&lt;&nbsp;a+1, Lentz continued fraction otherwise).</p>
+
+    <h3>Important limitations</h3>
+    <ul>
+      <li><strong>Tests 13 &amp; 14</strong> require at least &asymp;10&nbsp;000 bits to yield J&nbsp;&ge;&nbsp;500 excursion cycles — the minimum for a valid result.</li>
+      <li><strong>Test 8</strong> (Maurer Universal) requires &ge;&nbsp;904&nbsp;960 bits to engage the minimum L=6 parameter level. Shorter sequences return N/A.</li>
+      <li>This tool analyses a <em>single</em> sequence. NIST SP 800-22 Section 4 recommends testing at least 55 sequences of 1&nbsp;000&nbsp;000 bits each for a formal generator evaluation.</li>
+      <li>The <em>Generate</em> buttons use <code>Math.random()</code>, which is <strong>not</strong> a cryptographically secure RNG. Use generated sequences for demonstration only — not for security evaluation.</li>
+    </ul>
+
+    <h3>Reference</h3>
+    <p>Rukhin et al. (2010). <em>A Statistical Test Suite for Random and Pseudorandom Number Generators for Cryptographic Applications</em>. NIST Special Publication 800-22 Revision 1a.</p>
+  </div>
+
+</div>
+</div><!-- /page-about -->
+
+
+<!-- Scripts — load order enforces dependency graph -->
 <script src="js/math.js"></script>
-
-<!-- Layer 2: Statistical tests (each is self-contained) -->
 <script src="js/tests/test-01-frequency.js"></script>
 <script src="js/tests/test-02-block-frequency.js"></script>
 <script src="js/tests/test-03-runs.js"></script>
@@ -63,15 +314,20 @@
 <script src="js/tests/test-12-cusum.js"></script>
 <script src="js/tests/test-13-random-excursions.js"></script>
 <script src="js/tests/test-14-random-excursions-variant.js"></script>
-
-<!-- Layer 3: UI primitives -->
 <script src="js/ui/charts.js"></script>
 <script src="js/ui/card.js"></script>
 <script src="js/ui/renderers.js"></script>
-
-<!-- Layer 4: Orchestration -->
 <script src="js/runner.js"></script>
 <script src="js/ui/controller.js"></script>
+
+<script>
+function showPage(name, btn) {
+  document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
+  document.querySelectorAll('.nav-btn').forEach(function(b) { b.classList.remove('active'); });
+  document.getElementById('page-' + name).classList.add('active');
+  btn.classList.add('active');
+}
+</script>
 
 </body>
 </html>

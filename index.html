@@ -26,8 +26,20 @@
 
   <!-- Input -->
   <div class="input-section">
-    <label class="input-label">Binary sequence — enter or generate</label>
-    <textarea id="binInput" placeholder="Paste a string of 0s and 1s, or click a Generate button below…"></textarea>
+
+    <!-- Drop zone (file upload + DnD) -->
+    <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+      <input type="file" id="fileInput" accept=".txt,.bin,.dat,.seq,text/*" style="display:none">
+      <div class="drop-zone-icon">&#8659;</div>
+      <div class="drop-zone-main">Drop a file here or <span class="drop-zone-link">click to browse</span></div>
+      <div class="drop-zone-sub">Accepts .txt, .bin or any text file containing 0s and 1s</div>
+    </div>
+
+    <!-- Textarea -->
+    <label class="input-label" style="margin-top:14px">Or type / paste a binary sequence</label>
+    <textarea id="binInput" placeholder="Paste a string of 0s and 1s…"></textarea>
+
+    <!-- Controls row 1: params + run -->
     <div class="controls">
       <label class="param-label">
         Block M <span>Test 2</span>
@@ -43,11 +55,14 @@
       </label>
       <button class="btn-primary" onclick="runAll()">&#9654; Run All Tests</button>
     </div>
+
+    <!-- Controls row 2: generate -->
     <div class="controls controls-gen">
       <span class="gen-label">Generate random sequence:</span>
       <button class="btn-secondary" onclick="generateRandom(1000)">&#127922; 1 000 bits</button>
       <button class="btn-secondary" onclick="generateRandom(10000)">&#127922; 10 000 bits</button>
     </div>
+
     <div id="inputError" class="msg-error"></div>
     <div id="inputInfo"  class="msg-info"></div>
   </div>

@@ -46,3 +46,78 @@ function generateRandom(len) {
   document.getElementById('inputError').textContent = '';
   document.getElementById('inputInfo').textContent  = '';
 }
+
+/* ── File input & Drag-and-Drop ─────────────────────────────────────────────── */
+
+function loadTextIntoBinInput(text, filename) {
+  var raw = text.replace(/\s/g, '');
+  var errEl  = document.getElementById('inputError');
+  var infoEl = document.getElementById('inputInfo');
+  errEl.textContent = '';
+
+  if (!/^[01]+$/.test(raw)) {
+    errEl.textContent = 'File "' + filename + '" contains characters other than 0 and 1.';
+    _dropReset();
+    return;
+  }
+
+  document.getElementById('binInput').value = raw;
+  infoEl.textContent = 'Loaded "' + filename + '" — ' + raw.length + ' bits.';
+  _dropOk();
+}
+
+function _dropReset() {
+  var z = document.getElementById('dropZone');
+  z.classList.remove('drag-over', 'drop-ok');
+}
+
+function _dropOk() {
+  var z = document.getElementById('dropZone');
+  z.classList.remove('drag-over');
+  z.classList.add('drop-ok');
+  setTimeout(function() { z.classList.remove('drop-ok'); }, 2000);
+}
+
+function _readFile(file) {
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) { loadTextIntoBinInput(e.target.result, file.name); };
+  reader.onerror = function()  {
+    document.getElementById('inputError').textContent = 'Could not read file.';
+    _dropReset();
+  };
+  reader.readAsText(file);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  var zone   = document.getElementById('dropZone');
+  var picker = document.getElementById('fileInput');
+
+  /* File picker */
+  picker.addEventListener('change', function() {
+    if (picker.files && picker.files[0]) _readFile(picker.files[0]);
+    picker.value = '';           // allow re-selecting same file
+  });
+
+  /* Prevent zone click from bubbling after file picker opens */
+  zone.addEventListener('click', function(e) {
+    if (e.target !== picker) picker.click();
+  });
+
+  /* DnD events */
+  zone.addEventListener('dragenter', function(e) { e.preventDefault(); zone.classList.add('drag-over'); });
+  zone.addEventListener('dragover',  function(e) { e.preventDefault(); zone.classList.add('drag-over'); });
+  zone.addEventListener('dragleave', function(e) {
+    if (!zone.contains(e.relatedTarget)) zone.classList.remove('drag-over');
+  });
+  zone.addEventListener('drop', function(e) {
+    e.preventDefault();
+    zone.classList.remove('drag-over');
+    var file = e.dataTransfer.files && e.dataTransfer.files[0];
+    if (file) _readFile(file);
+  });
+
+  /* Global drag-over guard — prevent browser from opening file */
+  document.addEventListener('dragover',  function(e) { e.preventDefault(); });
+  document.addEventListener('drop',      function(e) { e.preventDefault(); });
+});

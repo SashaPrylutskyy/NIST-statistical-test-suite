@@ -651,3 +651,67 @@ code {
   white-space: nowrap;
   align-self: center;
 }
+
+/* ── Drop zone ───────────────────────────────────────────────────────────────── */
+.drop-zone {
+  position: relative;
+  border: 1.5px dashed var(--border2);
+  border-radius: var(--radius);
+  padding: 22px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  background: var(--bg3);
+  user-select: none;
+}
+
+.drop-zone:hover {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 6%, var(--bg3));
+}
+
+.drop-zone.drag-over {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, var(--bg3));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+.drop-zone.drop-ok {
+  border-color: var(--pass);
+  background: color-mix(in srgb, var(--pass) 8%, var(--bg3));
+}
+
+.drop-zone-icon {
+  font-size: 1.6rem;
+  line-height: 1;
+  margin-bottom: 6px;
+  color: var(--text3);
+  transition: color 0.2s, transform 0.2s;
+}
+
+.drop-zone:hover .drop-zone-icon,
+.drop-zone.drag-over .drop-zone-icon {
+  color: var(--accent);
+  transform: translateY(-2px);
+}
+
+.drop-zone-main {
+  font-size: 0.88rem;
+  color: var(--text2);
+  font-weight: 500;
+}
+
+.drop-zone-link {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.drop-zone-sub {
+  font-size: 0.74rem;
+  color: var(--text3);
+  margin-top: 4px;
+}
+
+.drop-zone.drop-ok .drop-zone-icon { color: var(--pass); }
+.drop-zone.drop-ok .drop-zone-main { color: var(--text); }

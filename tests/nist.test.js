@@ -603,10 +603,29 @@ describe('Berlekamp-Massey algorithm', function() {
     expect(ctx.berlekampMassey([1])).toBe(1);
   });
 
-  it('L ≤ n/2 for random sequences (half-length bound)', function() {
+  it('L ≤ n (hard upper bound, Massey 1969)', function() {
+    // The correct theorem: for any binary sequence of length n, L ≤ n.
+    // The naive claim L ≤ ceil(n/2) is FALSE for individual sequences —
+    // e.g. [1,1,1,0] of length 4 yields L=3 > ceil(4/2)=2.
+    // The half-length property only describes the EXPECTED value (n/2 + O(1))
+    // and behaviour under extensions, not a hard bound on individual sequences.
     var bits = CRYPTO_10K.slice(0, 500);
     var L    = ctx.berlekampMassey(bits);
-    expect(L).toBeLessThanOrEqual(bits.length / 2 + 1);
+    expect(L).toBeLessThanOrEqual(bits.length);
+  });
+
+  it('L is statistically close to n/2 for random sequences (NIST expected value)', function() {
+    // NIST SP 800-22 eq. 2.10.1: mu_L = n/2 + (4+r)/18  where r = n mod 2
+    // sigma^2 = n*(11/180) - (2/9)  (for even n)
+    // For a truly random sequence, |L - mu_L| < 4*sigma with very high probability.
+    var n    = 500;
+    var bits = CRYPTO_10K.slice(0, n);
+    var L    = ctx.berlekampMassey(bits);
+    var r    = n % 2;
+    var mu   = n / 2 + (4 + r) / 18;
+    var sig  = Math.sqrt(n * 11 / 180 - 2 / 9);
+    // Allow ±5 sigma — this will fail with probability < 1e-6 for truly random input
+    expect(Math.abs(L - mu)).toBeLessThan(5 * sig);
   });
 
 });

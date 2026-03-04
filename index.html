@@ -29,10 +29,10 @@
 
     <!-- Drop zone (file upload + DnD) -->
     <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
-      <input type="file" id="fileInput" accept=".txt,.bin,.dat,.seq,text/*" style="display:none">
+      <input type="file" id="fileInput" accept="*/*" style="display:none">
       <div class="drop-zone-icon">&#8659;</div>
       <div class="drop-zone-main">Drop a file here or <span class="drop-zone-link">click to browse</span></div>
-      <div class="drop-zone-sub">Accepts .txt, .bin or any text file containing 0s and 1s</div>
+      <div class="drop-zone-sub">Accepts any file: binary, Base64-encoded, or plain 0/1 text</div>
     </div>
 
     <!-- Textarea -->
